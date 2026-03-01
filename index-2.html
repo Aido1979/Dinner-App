@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dinner?">
+<title>Dinner?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, sans-serif; background: #FDF6EC; min-height: 100vh; padding: 30px 20px 60px; }
+  h1 { font-size: 2.4rem; text-align: center; color: #1A1208; margin-bottom: 6px; }
+  .subtitle { text-align: center; font-size: .8rem; color: #6B4C2A; margin-bottom: 28px; background: #F5E6CC; display: inline-block; padding: 3px 14px; border-radius: 20px; }
+  .center { text-align: center; }
+
+  .page { display: none; }
+  .page.show { display: block; }
+
+  /* WHO */
+  .who-label { font-size: .8rem; font-weight: 600; color: #6B4C2A; text-transform: uppercase; letter-spacing: .1em; text-align: center; margin-bottom: 14px; }
+  .who-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .who-btn { background: white; border: 2px solid #e8d8c0; border-radius: 16px; padding: 24px 14px; font-size: 1.1rem; font-weight: 600; color: #1A1208; cursor: pointer; font-family: -apple-system, sans-serif; width: 100%; }
+  .who-btn .sub { display: block; font-size: .7rem; font-weight: 400; color: #6B4C2A; opacity: .6; margin-top: 4px; }
+  .who-btn .done-tag { display: none; font-size: .65rem; background: #5A7A5C; color: white; padding: 2px 8px; border-radius: 10px; margin-top: 6px; }
+  .who-btn.done .done-tag { display: inline-block; }
+  .who-btn.done { opacity: .65; }
+
+  /* PLAN */
+  .plan-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .plan-title { font-size: 1.3rem; font-weight: 700; color: #1A1208; }
+  .plan-hint { font-size: .72rem; color: #6B4C2A; opacity: .6; }
+  .back-link { font-size: .8rem; color: #6B4C2A; background: none; border: 1px solid #d4c0a8; border-radius: 10px; padding: 6px 12px; cursor: pointer; font-family: -apple-system, sans-serif; }
+
+  /* DAY CARD */
+  .day-card { background: white; border-radius: 14px; border: 2px solid #e8d8c0; margin-bottom: 10px; overflow: hidden; }
+  .day-card.today { border-color: #D4A847; }
+  .day-card.past { opacity: .4; pointer-events: none; }
+  .day-top2 { display: flex; align-items: center; padding: 12px 14px; gap: 10px; }
+  .day-label-col { flex: 0 0 52px; }
+  .day-name { font-size: .9rem; font-weight: 700; color: #1A1208; }
+  .day-date { font-size: .68rem; color: #6B4C2A; opacity: .55; }
+  .today-tag { font-size: .6rem; background: #D4A847; color: white; padding: 1px 6px; border-radius: 6px; font-weight: 700; text-transform: uppercase; margin-top: 3px; display: none; }
+  .day-card.today .today-tag { display: inline-block; }
+
+  .tog-group { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+  .tog-btn { padding: 9px 2px; border: 2px solid #e8d8c0; border-radius: 10px; background: #FDF6EC; font-size: .72rem; font-weight: 600; color: #6B4C2A; cursor: pointer; font-family: -apple-system, sans-serif; text-align: center; line-height: 1.35; width: 100%; }
+
+  .time-extra { display: none; padding: 10px 14px; background: #fff5f0; border-top: 1px solid #f0d8cc; align-items: center; gap: 10px; }
+  .time-extra.show { display: flex; }
+  .time-extra label { font-size: .7rem; font-weight: 700; color: #C4622D; text-transform: uppercase; white-space: nowrap; }
+  .time-extra input { flex: 1; padding: 7px 10px; border: 2px solid #f0c8b0; border-radius: 8px; font-size: 1rem; font-weight: 600; color: #C4622D; text-align: center; background: white; font-family: -apple-system, sans-serif; outline: none; }
+
+  .note-extra { display: none; padding: 0 14px 10px; }
+  .note-extra.show { display: block; }
+  .note-extra input { width: 100%; padding: 7px 11px; border: 2px solid #e8d8c0; border-radius: 8px; font-size: .85rem; color: #1A1208; background: #FDF6EC; font-family: -apple-system, sans-serif; outline: none; }
+
+  /* SEND */
+  .send-btn { width: 100%; padding: 18px; border: none; border-radius: 14px; background: #1A1208; color: #FDF6EC; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: -apple-system, sans-serif; margin-top: 4px; }
+
+  /* CONFIRM */
+  .confirm-box { text-align: center; }
+  .big-emoji { font-size: 3.5rem; display: block; margin-bottom: 12px; }
+  .confirm-box h2 { font-size: 1.6rem; color: #1A1208; margin-bottom: 8px; }
+  .confirm-box p { font-size: .9rem; color: #6B4C2A; line-height: 1.5; margin-bottom: 24px; }
+  .summary { background: white; border-radius: 14px; border: 2px solid #e8d8c0; padding: 16px; margin-bottom: 20px; text-align: left; }
+  .summary h3 { font-size: .7rem; font-weight: 700; color: #6B4C2A; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
+  .sum-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; font-size: .85rem; }
+  .sum-day { width: 32px; font-weight: 700; color: #1A1208; font-size: .8rem; }
+  .sum-pill { padding: 3px 12px; border-radius: 20px; font-size: .75rem; font-weight: 600; color: white; }
+  .footer-link { margin-top: 32px; text-align: center; }
+  .footer-link button { background: none; border: none; font-size: .72rem; color: rgba(107,76,42,.3); cursor: pointer; font-family: -apple-system, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Dinner?</h1>
+<div class="center"><span class="subtitle" id="weekLabel">this week</span></div>
+
+<!-- PAGE 1: WHO -->
+<div class="page show" id="pageWho">
+  <p class="who-label">Who are you?</p>
+  <div class="who-grid">
+    <button class="who-btn" id="whoAidan">
+      Aidan
+      <span class="sub">that's me</span>
+      <span class="done-tag">✓ filled in</span>
+    </button>
+    <button class="who-btn" id="whoChad">
+      Chad
+      <span class="sub">that's me</span>
+      <span class="done-tag">✓ filled in</span>
+    </button>
+  </div>
+  <div class="footer-link"><button id="clearBtn">↺ clear this week's data</button></div>
+</div>
+
+<!-- PAGE 2: PLAN -->
+<div class="page" id="pagePlan">
+  <div class="plan-top">
+    <div>
+      <div class="plan-title" id="planTitle"></div>
+      <div class="plan-hint">tap a status for each day</div>
+    </div>
+    <button class="back-link" id="btnSwitch">← switch</button>
+  </div>
+  <div id="dayList"></div>
+  <button class="send-btn" id="btnSend">Send to <span id="sendTo"></span> →</button>
+</div>
+
+<!-- PAGE 3: CONFIRM -->
+<div class="page" id="pageConfirm">
+  <div class="confirm-box">
+    <span class="big-emoji">📅</span>
+    <h2>Week sent!</h2>
+    <p id="confirmMsg"></p>
+    <div class="summary">
+      <h3 id="summaryHeading"></h3>
+      <div id="summaryBody"></div>
+    </div>
+    <button class="send-btn" id="btnBack">← Back</button>
+  </div>
+</div>
+
+<script>
+var PEOPLE = {
+  Aidan: { phone: '14162706516', recipient: 'Chad' },
+  Chad:  { phone: '16472131634', recipient: 'Aidan' }
+};
+var DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+var SAGE  = '#5A7A5C';
+var RUST  = '#C4622D';
+var INK   = '#1A1208';
+var CREAM = '#FDF6EC';
+var MUTED = '#e8d8c0';
+var BGMUTED = '#FDF6EC';
+
+var who = null;
+var sel = []; // [{status,time,note}]
+// Direct references to toggle buttons
+var togRefs = []; // [{d,l,s,timeDiv,timeInput,noteDiv,noteInput}]
+
+function pad(n){ return n<10?'0'+n:''+n; }
+function fmt(t){
+  if(!t) return '';
+  var p=t.split(':'),h=+p[0],m=+p[1];
+  return (h%12||12)+':'+pad(m)+(h>=12?'pm':'am');
+}
+
+// Week helpers
+function getWeekDays(){
+  var now=new Date(), mon=new Date(now);
+  mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  var out=[];
+  for(var i=0;i<5;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);out.push(d);}
+  return out;
+}
+function weekKey(){
+  var d=getWeekDays()[0];
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function storeKey(p){ return 'dinner_'+weekKey()+'_'+p; }
+function todayIdx(){var d=new Date().getDay();return(d>=1&&d<=5)?d-1:-1;}
+
+function loadSel(person){
+  try{var r=localStorage.getItem(storeKey(person));sel=r?JSON.parse(r):[null,null,null,null,null].map(function(){return{status:null,time:'',note:''};});}
+  catch(e){sel=[null,null,null,null,null].map(function(){return{status:null,time:'',note:''};});}
+}
+function saveSel(person){
+  try{localStorage.setItem(storeKey(person),JSON.stringify(sel));}catch(e){}
+}
+function hasSaved(p){try{return!!localStorage.getItem(storeKey(p));}catch(e){return false;}}
+
+// Pages
+function showPage(id){
+  ['pageWho','pagePlan','pageConfirm'].forEach(function(p){
+    document.getElementById(p).className='page'+(p===id?' show':'');
+  });
+}
+
+function refreshBadges(){
+  ['Aidan','Chad'].forEach(function(n){
+    var b=document.getElementById('who'+n);
+    b.className='who-btn'+(hasSaved(n)?' done':'');
+  });
+}
+
+// Init week label
+(function(){
+  var days=getWeekDays();
+  var o={month:'short',day:'numeric'};
+  document.getElementById('weekLabel').textContent=
+    days[0].toLocaleDateString('en-CA',o)+' – '+days[4].toLocaleDateString('en-CA',o);
+  refreshBadges();
+})();
+
+// WHO buttons
+document.getElementById('whoAidan').addEventListener('click', function(){ selectPerson('Aidan'); });
+document.getElementById('whoChad').addEventListener('click',  function(){ selectPerson('Chad');  });
+document.getElementById('btnSwitch').addEventListener('click', function(){ refreshBadges(); showPage('pageWho'); });
+document.getElementById('btnBack').addEventListener('click',   function(){ refreshBadges(); showPage('pageWho'); });
+document.getElementById('btnSend').addEventListener('click', sendPlan);
+document.getElementById('clearBtn').addEventListener('click', function(){
+  if(!confirm('Clear this week\'s data?')) return;
+  try{['Aidan','Chad'].forEach(function(p){localStorage.removeItem(storeKey(p));});}catch(e){}
+  refreshBadges();
+});
+
+function selectPerson(name){
+  who=name;
+  loadSel(name);
+  document.getElementById('planTitle').textContent=name+"'s week";
+  document.getElementById('sendTo').textContent=PEOPLE[name].recipient;
+  buildDays();
+  showPage('pagePlan');
+}
+
+function buildDays(){
+  var container=document.getElementById('dayList');
+  container.innerHTML='';
+  togRefs=[];
+  var weekDays=getWeekDays();
+  var ti=todayIdx();
+  var midnight=new Date(); midnight.setHours(0,0,0,0);
+
+  for(var i=0;i<5;i++){
+    (function(i){
+      var date=weekDays[i];
+      var isPast=date<midnight;
+      var isToday=i===ti;
+      var s=sel[i];
+      var dateStr=date.toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+
+      var card=document.createElement('div');
+      card.className='day-card'+(isToday?' today':'')+(isPast?' past':'');
+
+      // Top row
+      var topRow=document.createElement('div');
+      topRow.className='day-top2';
+
+      // Label
+      var lc=document.createElement('div'); lc.className='day-label-col';
+      var dn=document.createElement('div'); dn.className='day-name'; dn.textContent=DAYS[i];
+      var dd=document.createElement('div'); dd.className='day-date'; dd.textContent=dateStr;
+      var tt=document.createElement('div'); tt.className='today-tag'; tt.textContent='today';
+      lc.appendChild(dn); lc.appendChild(dd); lc.appendChild(tt);
+      topRow.appendChild(lc);
+
+      // Toggles
+      var tg=document.createElement('div'); tg.className='tog-group';
+
+      var dBtn=document.createElement('button'); dBtn.type='button'; dBtn.innerHTML='🍽<br>Dinner';
+      var lBtn=document.createElement('button'); lBtn.type='button'; lBtn.innerHTML='🕐<br>Late';
+      var sBtn=document.createElement('button'); sBtn.type='button'; sBtn.innerHTML='✕<br>Away';
+      [dBtn,lBtn,sBtn].forEach(function(b){ b.className='tog-btn'; });
+
+      tg.appendChild(dBtn); tg.appendChild(lBtn); tg.appendChild(sBtn);
+      topRow.appendChild(tg);
+      card.appendChild(topRow);
+
+      // Time extra
+      var timeDiv=document.createElement('div'); timeDiv.className='time-extra';
+      var tLabel=document.createElement('label'); tLabel.textContent='Home by';
+      var tInput=document.createElement('input'); tInput.type='time'; tInput.value=s.time||'19:30';
+      timeDiv.appendChild(tLabel); timeDiv.appendChild(tInput);
+      card.appendChild(timeDiv);
+
+      // Note extra
+      var noteDiv=document.createElement('div'); noteDiv.className='note-extra';
+      var nInput=document.createElement('input'); nInput.type='text'; nInput.placeholder='Note… (optional)'; nInput.value=s.note||'';
+      noteDiv.appendChild(nInput);
+      card.appendChild(noteDiv);
+
+      container.appendChild(card);
+
+      // Store refs
+      togRefs[i]={dBtn:dBtn,lBtn:lBtn,sBtn:sBtn,timeDiv:timeDiv,tInput:tInput,noteDiv:noteDiv,nInput:nInput};
+
+      // Apply existing state
+      if(s.status) paintStatus(i,s.status);
+
+      // Click handlers — paint immediately via direct ref
+      dBtn.addEventListener('click', function(){ paintStatus(i,'dinner'); sel[i].status='dinner'; if(!sel[i].time)sel[i].time='19:30'; });
+      lBtn.addEventListener('click', function(){ paintStatus(i,'late');   sel[i].status='late';   if(!sel[i].time)sel[i].time='19:30'; });
+      sBtn.addEventListener('click', function(){ paintStatus(i,'skip');   sel[i].status='skip'; });
+      tInput.addEventListener('change', function(){ sel[i].time=this.value; });
+      nInput.addEventListener('input',  function(){ sel[i].note=this.value; });
+
+    })(i);
+  }
+}
+
+function paintStatus(i, status){
+  var r=togRefs[i];
+  // Reset all three to default style
+  [r.dBtn,r.lBtn,r.sBtn].forEach(function(b){
+    b.style.background=BGMUTED;
+    b.style.borderColor=MUTED;
+    b.style.color='#6B4C2A';
+  });
+  // Paint the selected one
+  if(status==='dinner'){ r.dBtn.style.background=SAGE; r.dBtn.style.borderColor=SAGE; r.dBtn.style.color='white'; }
+  if(status==='late')  { r.lBtn.style.background=RUST; r.lBtn.style.borderColor=RUST; r.lBtn.style.color='white'; }
+  if(status==='skip')  { r.sBtn.style.background=INK;  r.sBtn.style.borderColor=INK;  r.sBtn.style.color=CREAM; }
+  // Show/hide time
+  r.timeDiv.className='time-extra'+(status==='late'?' show':'');
+  // Show/hide note
+  r.noteDiv.className='note-extra'+(status!=='skip'?' show':'');
+}
+
+function sendPlan(){
+  var hasAny=sel.some(function(s){return s.status;});
+  if(!hasAny){alert('Set at least one day first!');return;}
+  var weekDays=getWeekDays();
+  var recipient=PEOPLE[who].recipient;
+  var phone=PEOPLE[recipient].phone;
+  var lines=[who+"'s week:"];
+  for(var i=0;i<5;i++){
+    var s=sel[i];
+    var ds=weekDays[i].toLocaleDateString('en-CA',{month:'short',day:'numeric'});
+    var line=DAYS[i]+' '+ds+': ';
+    if     (s.status==='dinner') line+='Home for dinner 🍽';
+    else if(s.status==='late')   line+='Home late'+(s.time?' (~'+fmt(s.time)+')':'')+' 🕐';
+    else if(s.status==='skip')   line+='Not home ✕';
+    else                         line+='—';
+    if(s.note&&s.status!=='skip') line+=' ('+s.note+')';
+    lines.push(line);
+  }
+  saveSel(who);
+  document.getElementById('confirmMsg').textContent='Your iMessage to '+recipient+' is ready — just tap Send!';
+  document.getElementById('summaryHeading').textContent=who+"'s week at a glance";
+  buildSummary(weekDays);
+  showPage('pageConfirm');
+  setTimeout(function(){
+    window.location.href='sms:'+phone+'&body='+encodeURIComponent(lines.join('\n'));
+  },350);
+}
+
+function buildSummary(weekDays){
+  var c=document.getElementById('summaryBody'); c.innerHTML='';
+  var colors={dinner:SAGE,late:RUST,skip:'#aaa',unset:'#e8d8c0'};
+  for(var i=0;i<5;i++){
+    var s=sel[i], st=s.status||'unset';
+    var label=st==='dinner'?'Dinner 🍽':st==='late'?'Late'+(s.time?' ~'+fmt(s.time):'')+' 🕐':st==='skip'?'Away':'—';
+    var row=document.createElement('div'); row.className='sum-row';
+    var day=document.createElement('div'); day.className='sum-day'; day.textContent=DAYS[i];
+    var pill=document.createElement('div'); pill.className='sum-pill';
+    pill.style.background=colors[st];
+    if(st==='unset') pill.style.color='#6B4C2A';
+    pill.textContent=label;
+    row.appendChild(day); row.appendChild(pill);
+    if(s.note){var n=document.createElement('div');n.style.fontSize='.72rem';n.style.color='#6B4C2A';n.style.opacity='.6';n.style.fontStyle='italic';n.textContent=s.note;row.appendChild(n);}
+    c.appendChild(row);
+  }
+}
+</script>
+</body>
+</html>
